@@ -7,24 +7,29 @@ def receive():
 	""" Handels receiving """
 	while True:
 		try:
-			msg = node_socket.recv(BUFF)
-			print(msg.decode(ENC8))
+			msg = node_socket.recv(BUFF).decode(ENC8)
+			if len(msg):
+				print(msg)
 		except OSError:
 			break
+		else:
+			continue
 
 def send():
 	""" Handles sending """
 	while True:
 		msg = input(f"{USERNAME} > ")
-		msg = f"{USERNAME} > {msg}"
+		user = f"{username} > "
 
-		if msg == "!quit"
+		if msg == "!quit":
 			node_socket.close()
 			exit()
 		else:
-			node_socket.send(bytes(msg, ENC8))
+			payload = user + msg
+			node_socket.send(bytes(payload, ENC8))
 
 
+# -----------------------------------
 
 connected_nodes = {}
 node_adresses = {}
@@ -36,8 +41,13 @@ ADDR = (IP, PORT)
 BUFF = 2048
 USERNAME = 'NODE2'
 
-node_socket = socket.socket(AF_INET, SOCK_STREAM)
-node_socket.connect(ADDR)
+try:
+	node_socket = socket.socket(AF_INET, SOCK_STREAM)
+	node_socket.connect(ADDR)
+except ConnectionRefusedError as error:
+	print(f"{error}")
+	print(f"Invalid socket")
+	exit()
 
 
 if __name__ == "__main__":
