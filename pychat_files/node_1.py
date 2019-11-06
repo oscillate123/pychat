@@ -19,30 +19,45 @@ def connections():
 
 def handle_client(client):
 	""" Handles clients """
-	name = client.recv(BUFF).decode(ENC8)
-	welcome = f'Welcome! Type "!quit", to quit.'
-	client.send(bytes(welcome, ENC8))
-	msg = f'{name} connected'
-	connected_clients[client] = name
+	try:
+		name = client.recv(BUFF).decode(ENC8)
 
-	while True:
-		msg = client.recv(BUFF).decode(ENC8)
-		if msg is not "!quit":
-			broadcast(msg, name+": ")
-		else:
-			client.send(bytes("Good bye", ENC8))
-			client.close()
-			del connected_clients[client]
-			Thread(
-				target=broadcast,
-				args=(bytes(f"{name} disconnected", ENC8))
-			)
+	except ConnectionResetError as error:
+		print(error)
+		print(f"{connected_clients[client]} disconnected")
+		broadcast(f'{connected_clients[client]} disconnected')
+	except KeyboardInterrupt as error:
+		broadcast(msg='server closed')
+		print(error)
+
+	else:
+		welcome = f'Welcome! Type "!quit", to quit.'
+		client.send(bytes(welcome, ENC8))
+		msg = f'{name} connected'
+		connected_clients[client] = name
+
+		while True:
+			msg = client.recv(BUFF).decode(ENC8)
+			if msg[-5:] != "!quit":
+				broadcast(msg)
+			else:
+				client.send(bytes("Good bye", ENC8))
+				client.close()
+				del connected_clients[client]
+				Thread(
+					target=broadcast,
+					args=(bytes(f"{name} disconnected", ENC8))
+				)
 
 
 def broadcast(msg):
 	""" Broadcasts to all clients """
 	for sock in connected_clients:
-		sock.send(bytes(prefix, ENC8)+msg)
+		try:
+			sock.send(bytes(msg, ENC8))
+		except BrokenPipeError as error:
+			print(error)
+			continue
 
 
 # -----------------------------------

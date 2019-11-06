@@ -43,7 +43,7 @@ PORT = 6663
 ENC8 = 'utf-8'
 ADDR = (IP, PORT)
 BUFF = 2048
-USERNAME = input('Username: ')
+USERNAME = 'NODE3'
 
 try:
 	node_socket = socket.socket(AF_INET, SOCK_STREAM)
